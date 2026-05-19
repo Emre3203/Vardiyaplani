@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vardiya Planlayıcı & Maaş Hesaplayıcı</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e3a5f;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#00ff88;--text:#e2e8f0;--muted:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 20% 20%,rgba(0,212,255,.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(0,255,136,.03) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.container{max-width:1400px;margin:0 auto;padding:24px;position:relative;z-index:1;}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.logo-main{font-size:26px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:2px;}
+.header-stats{display:flex;gap:28px;}
+.stat-pill .value{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);display:block;text-align:right;}
+.stat-pill .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.tabs{display:flex;gap:4px;margin-bottom:28px;background:var(--surface);border-radius:12px;padding:4px;border:1px solid var(--border);}
+.tab{flex:1;padding:10px 16px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;border-radius:9px;cursor:pointer;transition:all .2s;}
+.tab.active{background:var(--accent);color:#000;}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
+.panel{display:none;}.panel.active{display:block;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+input,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,212,255,.1);}
+select option{background:var(--surface2);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;border:none;width:100%;margin-bottom:8px;}
+.btn-primary{background:var(--accent);color:#000;}.btn-primary:hover{background:#00b8d9;transform:translateY(-1px);}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--accent);}
+.btn-danger{background:rgba(255,100,100,.12);color:#f87171;border:1px solid rgba(255,100,100,.3);}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.cal-nav{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;transition:all .2s;}
+.cal-nav:hover{border-color:var(--accent);color:var(--accent);}
+.month-title{font-size:20px;font-weight:800;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dn{text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:7px 0;}
+.cal-day{min-height:72px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:7px;cursor:pointer;transition:all .2s;}
+.cal-day:hover{border-color:var(--accent);}
+.cal-day.other{opacity:.25;}
+.cal-day.today{border-color:var(--accent);}
+.cal-day.today .cal-num{color:var(--accent);}
+.cal-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px;}
+.cal-tag{font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;text-align:center;margin-top:2px;}
+.tag-NIGHT{background:rgba(167,139,250,.2);color:#a78bfa;}
+.tag-DAY{background:rgba(52,211,153,.2);color:#34d399;}
+.tag-EARLY{background:rgba(251,191,36,.2);color:#fbbf24;}
+.tag-REST{background:rgba(100,116,139,.12);color:var(--muted);}
+.big-num{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:700;line-height:1;}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--surface2);border-radius:7px;border:1px solid var(--border);margin-bottom:6px;}
+.brow .bn{font-size:13px;color:var(--text);}
+.brow .bv{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);}
+.brow.neg .bv{color:#f87171;}
+.brow.pos .bv{color:var(--accent3);}
+.brow.tot{border-color:var(--accent3);background:rgba(0,255,136,.05);}
+.brow.tot .bv{color:var(--accent3);font-size:16px;}
+.brow.nett{border-color:#fbbf24;background:rgba(251,191,36,.05);}
+.brow.nett .bv{color:#fbbf24;font-size:16px;}
+.ftable{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.ftable th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);}
+.ftable td{padding:8px 10px;border-bottom:1px solid rgba(30,58,95,.4);}
+.ftable tr:hover td{background:rgba(0,212,255,.03);}
+.prog-wrap{background:var(--surface2);border-radius:100px;height:10px;overflow:hidden;margin:8px 0;}
+.prog-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width .6s ease;}
+.sbox{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;}
+.sbox .sv{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--accent);display:block;}
+.sbox .sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;display:block;}
+.shift-list{display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;}
+.shift-list::-webkit-scrollbar{width:4px;}.shift-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.se{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;}
+.se-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:88px;}
+.se-hrs{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);margin-left:auto;}
+.se-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;transition:color .2s;}
+.se-del:hover{color:#f87171;}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;}
+.badge-NIGHT{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3);}
+.badge-DAY{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3);}
+.badge-EARLY{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
+.badge-REST{background:rgba(100,116,139,.12);color:var(--muted);border:1px solid rgba(100,116,139,.3);}
+.alert{padding:11px 14px;border-radius:8px;font-size:12px;margin-bottom:14px;}
+.alert-info{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);color:#67e8f9;}
+.alert-warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:#fde68a;}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;width:400px;max-width:95vw;position:relative;}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:20px;color:var(--accent);}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+@media(max-width:900px){.grid-2,.grid-4{grid-template-columns:1fr;}.header-stats{display:none;}}
+@media(max-width:500px){.cal-day{min-height:48px;padding:4px;}.cal-tag{display:none;}.cal-num{font-size:10px;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div>
+    <div class="logo-main">VardiyaPlanner</div>
+    <div class="logo-sub">DPL 514 · BÜ Moorburger Str.</div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-pill"><span class="value" id="hdr-shifts">0</span><span class="label">Vardiya</span></div>
+    <div class="stat-pill"><span class="value" id="hdr-hours">0h</span><span class="label">Saat</span></div>
+    <div class="stat-pill"><span class="value" id="hdr-brut">0€</span><span class="label">Est. Brüt</span></div>
+    <div class="stat-pill"><span class="value" id="hdr-net">0€</span><span class="label">Est. Net</span></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('cal',this)">📅 Takvim</button>
+  <button class="tab" onclick="switchTab('salary',this)">💶 Maaş</button>
+  <button class="tab" onclick="switchTab('forecast',this)">📈 Tahmin</button>
+  <button class="tab" onclick="switchTab('settings',this)">⚙️ Ayarlar</button>
+</div>
+
+<!-- CALENDAR -->
+<div id="panel-cal" class="panel active">
+  <div class="card" style="margin-bottom:20px">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">← Önceki</button>
+      <span class="month-title" id="month-title"></span>
+      <button class="cal-nav" onclick="changeMonth(1)">Sonraki →</button>
+    </div>
+    <div class="cal-grid" id="cal-daynames"></div>
+    <div style="height:6px"></div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Bu Ay Özeti</div>
+      <div id="month-summary"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Vardiya Ekle</div>
+      <div class="form-group"><label class="form-label">Başlangıç Tarihi</label><input type="date" id="add-start"></div>
+      <div class="form-group"><label class="form-label">Bitiş Tarihi (tek gün = aynı tarih)</label><input type="date" id="add-end"></div>
+      <div class="form-group"><label class="form-label">Vardiya Tipi</label>
+        <select id="add-type">
+          <option value="NIGHT">🌙 Gece (20:00–05:30)</option>
+          <option value="DAY">☀️ Gündüz (05:30–13:30)</option>
+          <option value="EARLY">🌅 Erken (13:30–20:00)</option>
+          <option value="REST">💤 Dinlenme / İzin</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="addShiftRange()">+ Ekle</button>
+    </div>
+  </div>
+</div>
+
+<!-- SALARY -->
+<div id="panel-salary" class="panel">
+  <div class="alert alert-info">Parametreler belgenizden alındı (Entgeltstufe 2, Gesamtbrutto 2.637,45 €). Güncelleme yapabilirsiniz.</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Ücret Parametreleri</div>
+      <div class="form-group"><label class="form-label">Temel Saatlik Ücret (€)</label><input type="number" id="p-base" value="16.50" step="0.01" oninput="recalc()"></div>
+      <div class="form-group"><label class="form-label">Gece Zulage (%)</label><input type="number" id="p-night" value="25" step="1" oninput="recalc()"></div>
+      <div class="form-group"><label class="form-label">Cumartesi Zulage (%)</label><input type="number" id="p-sat" value="15" step="1" oninput="recalc()"></div>
+      <div class="form-group"><label class="form-label">Pazar / Tatil Zulage (%)</label><input type="number" id="p-sun" value="50" step="1" oninput="recalc()"></div>
+      <div class="form-group"><label class="form-label">Sabit Aylık Prim (€)</label><input type="number" id="p-bonus" value="200" step="10" oninput="recalc()"></div>
+      <div class="form-group"><label class="form-label">Hesaplama Ayı</label><input type="month" id="p-month" oninput="recalc()"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Tahmini Hesaplama</div>
+      <div id="salary-result"><p style="color:var(--muted);font-size:13px">Ay seçin ve takvimden vardiya ekleyin.</p></div>
+    </div>
+  </div>
+  <div style="height:20px"></div>
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Gerçek Bordronuz (Belge)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Gelirler</p>
+        <div class="brow"><span class="bn">Zahlbetrag aus MTE</span><span class="bv pos">2.614,45 €</span></div>
+        <div class="brow"><span class="bn">Altersvorsorge (577)</span><span class="bv">23,00 €</span></div>
+        <div class="brow tot"><span class="bn" style="font-weight:700">Gesetzl. Gesamtbrutto</span><span class="bv">2.637,45 €</span></div>
+      </div>
+      <div>
+        <p style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Kesintiler</p>
+        <div class="brow neg"><span class="bn">Krankenversicherung %9.00</span><span class="bv">−232,60 €</span></div>
+        <div class="brow neg"><span class="bn">Rentenversicherung %9.30</span><span class="bv">−240,35 €</span></div>
+        <div class="brow neg"><span class="bn">Arbeitslosenvers %1.30</span><span class="bv">−33,60 €</span></div>
+        <div class="brow neg"><span class="bn">Pflegeversicherung %1.55</span><span class="bv">−40,06 €</span></div>
+        <div class="brow neg"><span class="bn">DEVK Pensionsfonds</span><span class="bv">−53,00 €</span></div>
+        <div class="brow nett"><span class="bn" style="font-weight:700">💳 Überweisung (Net)</span><span class="bv">2.483,91 €</span></div>
+      </div>
+    </div>
+    <div class="alert alert-warn" style="margin-top:16px;margin-bottom:0">ℹ️ Bu normal ay bordrosu. Fazla mesai/gece primli aylarda tutar farklılaşır. Yukarıdaki hesap makinesi seçtiğiniz aya ve vardiyanıza göre tahmini hesaplar.</div>
+  </div>
+</div>
+
+<!-- FORECAST -->
+<div id="panel-forecast" class="panel">
+  <div class="grid-4" id="stat-boxes" style="margin-bottom:20px"></div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title"><span class="dot"></span>Yıllık Hedef (<span id="yr-lbl">2036</span> saat)</div>
+    <div id="yearly-prog"></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Önümüzdeki 12 Ay</div>
+      <table class="ftable"><thead><tr><th>Ay</th><th>Vardiya</th><th>Saat</th><th>Est.Brüt</th><th>Est.Net</th></tr></thead><tbody id="forecast-rows"></tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Tüm Vardiyalar</div>
+      <div class="shift-list" id="all-shifts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="panel-settings" class="panel">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Vardiya Süreleri</div>
+      <div class="form-group"><label class="form-label">Gece Vardiyası (saat)</label><input type="number" id="s-night" value="9.5" step="0.5" oninput="saveSettings()"></div>
+      <div class="form-group"><label class="form-label">Gündüz Vardiyası (saat)</label><input type="number" id="s-day" value="8" step="0.5" oninput="saveSettings()"></div>
+      <div class="form-group"><label class="form-label">Erken Vardiyası (saat)</label><input type="number" id="s-early" value="6.5" step="0.5" oninput="saveSettings()"></div>
+      <div class="form-group"><label class="form-label">Yıllık Hedef Saat</label><input type="number" id="s-yearly" value="2036" oninput="saveSettings()"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#f87171"></span>Veri Yönetimi</div>
+      <div class="alert alert-info" style="margin-bottom:16px">Tüm veriler tarayıcınızda (localStorage) saklanır.</div>
+      <button class="btn btn-ghost" onclick="exportJSON()">📥 JSON Olarak İndir</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('imp-f').click()">📤 JSON Yükle</button>
+      <input type="file" id="imp-f" accept=".json" style="display:none" onchange="importJSON(event)">
+      <button class="btn btn-danger" onclick="clearAll()">🗑️ Tüm Vardiyaları Sil</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="day-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+let cYear=new Date().getFullYear(),cMonth=new Date().getMonth();
+let shifts={};
+let cfg={nightH:9.5,dayH:8,earlyH:6.5,yearlyTarget:2036};
+const MN=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const DN=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+const LABELS={NIGHT:'🌙 Gece',DAY:'☀️ Gündüz',EARLY:'🌅 Erken',REST:'💤 Dinlenme'};
+const ABBR={NIGHT:'GCE',DAY:'GDZ',EARLY:'ERK',REST:'DİN'};
+function sh(t){return t==='NIGHT'?cfg.nightH:t==='DAY'?cfg.dayH:t==='EARLY'?cfg.earlyH:0;}
+function fmt(n){return n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function save(){localStorage.setItem('vp_s',JSON.stringify(shifts));localStorage.setItem('vp_c',JSON.stringify(cfg));updateAll();}
+
+function load(){
+  const s=localStorage.getItem('vp_s'),c=localStorage.getItem('vp_c');
+  if(s)shifts=JSON.parse(s);
+  if(c)cfg={...cfg,...JSON.parse(c)};
+  document.getElementById('s-night').value=cfg.nightH;
+  document.getElementById('s-day').value=cfg.dayH;
+  document.getElementById('s-early').value=cfg.earlyH;
+  document.getElementById('s-yearly').value=cfg.yearlyTarget;
+  const now=new Date();
+  document.getElementById('p-month').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+}
+
+function saveSettings(){
+  cfg.nightH=parseFloat(document.getElementById('s-night').value)||9.5;
+  cfg.dayH=parseFloat(document.getElementById('s-day').value)||8;
+  cfg.earlyH=parseFloat(document.getElementById('s-early').value)||6.5;
+  cfg.yearlyTarget=parseInt(document.getElementById('s-yearly').value)||2036;
+  save();
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  updateAll();
+}
+
+function renderCalendar(){
+  document.getElementById('month-title').textContent=`${MN[cMonth]} ${cYear}`;
+  document.getElementById('cal-daynames').innerHTML=DN.map(d=>`<div class="cal-dn">${d}</div>`).join('');
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  const first=new Date(cYear,cMonth,1);
+  let dow=(first.getDay()+6)%7;
+  const dim=new Date(cYear,cMonth+1,0).getDate();
+  const prev=new Date(cYear,cMonth,0).getDate();
+  const today=new Date();
+  const ts=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  for(let i=dow-1;i>=0;i--){const pm=cMonth===0?12:cMonth,py=cMonth===0?cYear-1:cYear;grid.appendChild(mkDay(prev-i,py,pm,true));}
+  for(let d=1;d<=dim;d++){const el=mkDay(d,cYear,cMonth+1,false);const key=`${cYear}-${String(cMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;if(key===ts)el.classList.add('today');grid.appendChild(el);}
+  let rem=(7-(dow+dim)%7)%7;
+  for(let d=1;d<=rem;d++){const nm=cMonth===11?1:cMonth+2,ny=cMonth===11?cYear+1:cYear;grid.appendChild(mkDay(d,ny,nm,true));}
+  renderMonthSum();
+}
+
+function mkDay(d,y,m,other){
+  const el=document.createElement('div');
+  el.className='cal-day'+(other?' other':'');
+  const key=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  el.innerHTML=`<div class="cal-num">${d}</div>`;
+  if(shifts[key]){const t=shifts[key];el.innerHTML+=`<div class="cal-tag tag-${t}">${ABBR[t]}</div>`;}
+  el.onclick=()=>openModal(key,d,m,y);
+  return el;
+}
+
+function changeMonth(dir){cMonth+=dir;if(cMonth>11){cMonth=0;cYear++;}if(cMonth<0){cMonth=11;cYear--;}renderCalendar();}
+
+function renderMonthSum(){
+  const counts={};let totalH=0;
+  Object.entries(shifts).forEach(([k,t])=>{const[y,m]=k.split('-').map(Number);if(y===cYear&&m===cMonth+1){counts[t]=(counts[t]||0)+1;totalH+=sh(t);}});
+  const target=cfg.yearlyTarget/12,pct=Math.min(100,(totalH/target)*100).toFixed(0);
+  let html='';
+  Object.entries(counts).forEach(([t,c])=>{if(c)html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--surface2);border-radius:7px;margin-bottom:5px;border:1px solid var(--border)"><span class="badge badge-${t}">${LABELS[t]}</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px">${c} vardiya</span></div>`;});
+  html+=`<div style="margin-top:10px;font-size:11px;color:var(--muted)">Toplam: <b style="color:var(--text)">${totalH.toFixed(1)}h</b> / Aylık hedef ~${target.toFixed(0)}h</div>`;
+  html+=`<div class="prog-wrap"><div class="prog-fill" style="width:${pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:4px">${pct}% tamamlandı</div>`;
+  document.getElementById('month-summary').innerHTML=html;
+}
+
+function addShiftRange(){
+  const s=document.getElementById('add-start').value,e=document.getElementById('add-end').value||s,t=document.getElementById('add-type').value;
+  if(!s){alert('Lütfen tarih seçin');return;}
+  let cur=new Date(s),end=new Date(e);
+  while(cur<=end){shifts[cur.toISOString().slice(0,10)]=t;cur.setDate(cur.getDate()+1);}
+  save();renderCalendar();
+}
+
+function openModal(key,d,m,y){
+  document.getElementById('modal-title').textContent=`${d} ${MN[m-1]} ${y}`;
+  const cur=shifts[key];
+  document.getElementById('modal-body').innerHTML=`
+    ${cur?`<div class="alert alert-info">Mevcut: <b>${LABELS[cur]}</b></div>`:''}
+    <div class="form-group"><label class="form-label">Vardiya Seç</label>
+      <select id="modal-type">
+        <option value="">— Kaldır —</option>
+        <option value="NIGHT"${cur==='NIGHT'?' selected':''}>🌙 Gece</option>
+        <option value="DAY"${cur==='DAY'?' selected':''}>☀️ Gündüz</option>
+        <option value="EARLY"${cur==='EARLY'?' selected':''}>🌅 Erken</option>
+        <option value="REST"${cur==='REST'?' selected':''}>💤 Dinlenme</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="saveDay('${key}')">Kaydet</button>`;
+  document.getElementById('day-modal').classList.add('open');
+}
+
+function saveDay(key){const v=document.getElementById('modal-type').value;if(v)shifts[key]=v;else delete shifts[key];save();renderCalendar();closeModal();}
+function closeModal(){document.getElementById('day-modal').classList.remove('open');}
+
+function recalc(){
+  const base=parseFloat(document.getElementById('p-base').value)||16.50;
+  const nPct=parseFloat(document.getElementById('p-night').value)||25;
+  const sPct=parseFloat(document.getElementById('p-sat').value)||15;
+  const suPct=parseFloat(document.getElementById('p-sun').value)||50;
+  const bonus=parseFloat(document.getElementById('p-bonus').value)||0;
+  const mv=document.getElementById('p-month').value;
+  if(!mv)return;
+  const[y,m]=mv.split('-').map(Number);
+  let nH=0,dH=0,eH=0,satH=0,sunH=0;
+  Object.entries(shifts).forEach(([k,t])=>{
+    const[ky,km,kd]=k.split('-').map(Number);
+    if(ky!==y||km!==m)return;
+    const h=sh(t),dow=new Date(ky,km-1,kd).getDay();
+    if(t==='NIGHT')nH+=h;else if(t==='DAY')dH+=h;else if(t==='EARLY')eH+=h;
+    if(dow===6)satH+=h;if(dow===0)sunH+=h;
+  });
+  const totalH=nH+dH+eH;
+  const bW=totalH*base,nB=nH*base*(nPct/100),sB=satH*base*(sPct/100),suB=sunH*base*(suPct/100);
+  const brut=bW+nB+sB+suB+bonus;
+  const kv=brut*.090,rv=brut*.093,av=brut*.013,pv=brut*.0155;
+  const net=brut-(kv+rv+av+pv);
+  document.getElementById('salary-result').innerHTML=`
+    <div style="margin-bottom:14px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Tahmini Brüt</div>
+    <div class="big-num" style="color:var(--accent3)">${fmt(brut)} €</div></div>
+    <div class="brow"><span class="bn">Temel (${totalH.toFixed(1)}h × ${base}€)</span><span class="bv">${fmt(bW)} €</span></div>
+    <div class="brow"><span class="bn">Gece Primi (${nH.toFixed(1)}h × %${nPct})</span><span class="bv">${fmt(nB)} €</span></div>
+    <div class="brow"><span class="bn">Cumartesi (${satH.toFixed(1)}h × %${sPct})</span><span class="bv">${fmt(sB)} €</span></div>
+    <div class="brow"><span class="bn">Pazar (${sunH.toFixed(1)}h × %${suPct})</span><span class="bv">${fmt(suB)} €</span></div>
+    <div class="brow"><span class="bn">Sabit Prim</span><span class="bv">${fmt(bonus)} €</span></div>
+    <div style="height:6px"></div>
+    <div class="brow neg"><span class="bn">KV %9.0</span><span class="bv">−${fmt(kv)} €</span></div>
+    <div class="brow neg"><span class="bn">RV %9.3</span><span class="bv">−${fmt(rv)} €</span></div>
+    <div class="brow neg"><span class="bn">AV %1.3</span><span class="bv">−${fmt(av)} €</span></div>
+    <div class="brow neg"><span class="bn">PV %1.55</span><span class="bv">−${fmt(pv)} €</span></div>
+    <div class="brow nett" style="margin-top:8px"><span class="bn" style="font-weight:700">💳 Tahmini Net</span><span class="bv">${fmt(net)} €</span></div>`;
+}
+
+function renderForecast(){
+  let total=0,hours=0;
+  Object.values(shifts).forEach(t=>{total++;hours+=sh(t);});
+  const target=cfg.yearlyTarget,pct=Math.min(100,(hours/target)*100).toFixed(0);
+  document.getElementById('stat-boxes').innerHTML=`
+    <div class="sbox"><span class="sv">${total}</span><span class="sl">Toplam Vardiya</span></div>
+    <div class="sbox"><span class="sv">${hours.toFixed(0)}h</span><span class="sl">Toplam Saat</span></div>
+    <div class="sbox"><span class="sv">${pct}%</span><span class="sl">Yıllık Hedef</span></div>
+    <div class="sbox"><span class="sv">${Math.max(0,target-hours).toFixed(0)}h</span><span class="sl">Kalan Hedef</span></div>`;
+  document.getElementById('yr-lbl').textContent=target;
+  document.getElementById('yearly-prog').innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:6px"><span>${hours.toFixed(1)}h kayıtlı</span><span>Hedef: ${target}h</span></div>
+    <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px">${pct}% — Kalan: ${Math.max(0,target-hours).toFixed(1)} saat</div>`;
+  const base=parseFloat(document.getElementById('p-base').value)||16.50;
+  const now=new Date();
+  const tbody=document.getElementById('forecast-rows');
+  tbody.innerHTML='';
+  for(let i=0;i<12;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()+i,1);
+    const y=d.getFullYear(),m=d.getMonth()+1;
+    let sc=0,sH=0;
+    Object.entries(shifts).forEach(([k,t])=>{const[ky,km]=k.split('-').map(Number);if(ky===y&&km===m){sc++;sH+=sh(t);}});
+    const brut=sH*base*1.2,net=brut*.787;
+    tbody.innerHTML+=`<tr><td>${MN[m-1].slice(0,3)} ${y}</td><td>${sc}</td><td>${sH.toFixed(1)}h</td><td style="color:var(--accent3)">${sc?fmt(brut)+'€':'—'}</td><td style="color:#fbbf24">${sc?fmt(net)+'€':'—'}</td></tr>`;
+  }
+  const el=document.getElementById('all-shifts');
+  const sorted=Object.entries(shifts).sort((a,b)=>a[0].localeCompare(b[0]));
+  if(!sorted.length){el.innerHTML='<p style="color:var(--muted);font-size:13px;padding:10px">Henüz vardiya eklenmedi.</p>';return;}
+  el.innerHTML=sorted.map(([k,t])=>{const[y,mn,d]=k.split('-');const h=sh(t);return`<div class="se"><span class="se-date">${d}.${mn}.${y}</span><span class="badge badge-${t}">${ABBR[t]}</span><span class="se-hrs">${h?h+'h':''}</span><button class="se-del" onclick="delShift('${k}')" title="Sil">✕</button></div>`;}).join('');
+}
+
+function delShift(k){if(confirm('Bu vardiyayı sil?')){delete shifts[k];save();}}
+
+function updateHeader(){
+  let total=0,hours=0;Object.values(shifts).forEach(t=>{total++;hours+=sh(t);});
+  const base=parseFloat(document.getElementById('p-base').value)||16.50;
+  const brut=hours*base*1.2,net=brut*.787;
+  document.getElementById('hdr-shifts').textContent=total;
+  document.getElementById('hdr-hours').textContent=hours.toFixed(0)+'h';
+  document.getElementById('hdr-brut').textContent=fmt(brut)+'€';
+  document.getElementById('hdr-net').textContent=fmt(net)+'€';
+}
+
+function updateAll(){renderCalendar();recalc();renderForecast();updateHeader();}
+
+function exportJSON(){const a=document.createElement('a');a.href='data:text/json,'+encodeURIComponent(JSON.stringify({shifts,cfg},null,2));a.download='vardiya-veriler.json';a.click();}
+function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.shifts)shifts=d.shifts;if(d.cfg)cfg={...cfg,...d.cfg};save();}catch{alert('Geçersiz dosya');}};r.readAsText(f);}
+function clearAll(){if(confirm('Tüm vardiyalar silinsin mi?')){shifts={};save();renderCalendar();}}
+
+load();updateAll();
+document.getElementById('day-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+</body>
+</html>
